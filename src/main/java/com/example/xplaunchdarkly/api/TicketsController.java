@@ -5,11 +5,14 @@ import com.launchdarkly.sdk.server.LDClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.UUID;
 
-import static java.lang.String.*;
+import static java.lang.String.format;
 
 @RestController
 @AllArgsConstructor
@@ -21,11 +24,22 @@ public class TicketsController implements TicketsAPi {
 
     @Override
     public ResponseEntity<String> reserveTicket() {
-        LDContext context = LDContext.builder("example-user-key").name("Sandy").build();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
 
-        boolean flagValue = client.boolVariation(FEATURE_FLAG_KEY, context, false);
+        LDContext context = LDContext.builder(generateKey(username)).name(username).build();
 
-        return ResponseEntity.created(URI.create(format("/tickets/reservation/%s", flagValue))).build();
+        boolean canAccessFeature = client.boolVariation(FEATURE_FLAG_KEY, context, false);
+
+        if (canAccessFeature) {
+            return ResponseEntity.created(URI.create(format("/tickets/reservation/", UUID.randomUUID()))).build();
+        }
+        return ResponseEntity.notFound().build();
+
+    }
+
+    private String generateKey(String username) {
+        return format("%s-key", username);
     }
 
 }
