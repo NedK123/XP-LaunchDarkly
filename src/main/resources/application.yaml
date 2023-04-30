@@ -1,0 +1,3 @@
+feature-flagging:
+  app-key: ${LD_APP_KEY}
+
