@@ -32,7 +32,7 @@ public class TicketsController implements TicketsAPi {
         boolean canAccessFeature = client.boolVariation(FEATURE_FLAG_KEY, context, false);
 
         if (canAccessFeature) {
-            return ResponseEntity.created(URI.create(format("/tickets/reservation/", UUID.randomUUID()))).build();
+            return ResponseEntity.created(URI.create(format("/tickets/reservation/%s", UUID.randomUUID()))).build();
         }
         return ResponseEntity.notFound().build();
 
